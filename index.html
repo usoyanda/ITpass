@@ -129,15 +129,18 @@ function loadSyncCode(){try{return localStorage.getItem(SYNC_KEY)||""}catch(e){r
 function saveSyncCode(c){try{if(c)localStorage.setItem(SYNC_KEY,c);else localStorage.removeItem(SYNC_KEY)}catch(e){}}
 function genCode(){const chars="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";let s="";for(let i=0;i<8;i++)s+=chars[(Math.random()*chars.length)|0];return s}
 async function supaGet(code){
-  const res=await fetch(`${SUPA_URL}/rest/v1/sync_data?code=eq.${encodeURIComponent(code)}&select=*`,{headers:{apikey:SUPA_KEY,Authorization:`Bearer ${SUPA_KEY}`}});
+  async function supaGet(code){
+  const res=await fetch(`${SUPA_URL}/rest/v1/sync_data?code=eq.${encodeURIComponent(code)}&app=eq.itpass&select=*`,{headers:{apikey:SUPA_KEY,Authorization:`Bearer ${SUPA_KEY}`}});
   if(!res.ok)throw new Error("pull failed: "+res.status);
   const rows=await res.json();return rows[0]||null;
+}
 }
 async function supaUpsert(code,payload){
   const res=await fetch(`${SUPA_URL}/rest/v1/sync_data`,{method:"POST",
     headers:{apikey:SUPA_KEY,Authorization:`Bearer ${SUPA_KEY}`,"Content-Type":"application/json",Prefer:"resolution=merge-duplicates"},
-    body:JSON.stringify({code,...payload})});
+    body:JSON.stringify({code,app:"itpass",...payload})});
   if(!res.ok)throw new Error("push failed: "+res.status);
+}
 }
 function mergeStats(local,cloud){
   const out={...local};
